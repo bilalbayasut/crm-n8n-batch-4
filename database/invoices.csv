@@ -1,0 +1,2 @@
+﻿id,phone_number,name,content,total_amount,status,payment_link,invoice_number,transaction_id,createdAt,updatedAt
+1,622313321311,bilal,"[Array: [{""product_name"": ""Kurma Medjool Palestina (Jumbo)"", ""quantity"": 1, ""price"": 280000},{""product_name"": ""Kurma Sukari Al-Qassim"", ""quantity"": 2, ""price"": 135000}]]",135000,PENDING,#,INV001,#,2026-06-02T13:39:17.001Z,2026-06-02T13:41:05.430Z
