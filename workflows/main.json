@@ -1,0 +1,205 @@
+{
+  "name": "main",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "7bbb0388-c0ac-401b-80f9-7a1fbe522cf6",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -272,
+        -64
+      ],
+      "id": "f4f7fdd1-560b-4a1c-b62f-e1b4dc34e8ba",
+      "name": "Webhook",
+      "webhookId": "7bbb0388-c0ac-401b-80f9-7a1fbe522cf6"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Define your Webhook Secret (Replace with your actual secret key)\nconst secret = '68f3e654718b99d27a15d97f75e064f3f0f939f803b53af82264599ec4004d67';\n\n// 2. Extract incoming headers and the raw body\n// (Adjust header name to match your specific provider, e.g., 'x-hub-signature-256')\nconst providedSignature = items[0].json.headers['x-hub-signature-256']; \nconst rawBody = JSON.stringify(items[0].json.body); \n\n// 3. Compute the HMAC signature\nconst crypto = require('crypto');\nconst hmac = crypto.createHmac('sha256', secret);\nhmac.update(rawBody, 'utf8');\nconst computedSignature = `sha256=${hmac.digest('hex')}`;\n\n// 4. Verify and act accordingly\nif (crypto.timingSafeEqual(Buffer.from(providedSignature), Buffer.from(computedSignature))) {\n    // Signatures match: Request is authentic\n    return [{ json: { verified: true, data: items[0].json.body } }];\n} else {\n    // Signatures do not match: Reject or flag the request\n    throw new Error('Invalid HMAC Signature');\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -64
+      ],
+      "id": "4b8799ae-f4e4-4a5c-874a-c4722e043c0a",
+      "name": "HMAC Verification"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "xWmxHlK60TtXshoB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/xWmxHlK60TtXshoB",
+          "cachedResultName": "auth"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "is_admin": false,
+            "phone_number": "={{ $json.data.payload.from.split(\"@\")[0] }}",
+            "name": "={{ $json.data.payload.from_name }}",
+            "chat_id": "={{ $json.data.payload.chat_id }}",
+            "from": "={{ $json.data.payload.from }}",
+            "is_from_me": "={{ $json.data.payload.is_from_me }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "phone_number",
+              "displayName": "phone_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "is_admin",
+              "displayName": "is_admin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "is_from_me",
+              "displayName": "is_from_me",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            },
+            {
+              "id": "from",
+              "displayName": "from",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        128,
+        -64
+      ],
+      "name": "Call auth",
+      "id": "94f4a65c-570a-4966-8518-19434c40d148"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n:5678",
+            "user-agent": "Go-http-client/1.1",
+            "transfer-encoding": "chunked",
+            "content-type": "application/json",
+            "x-hub-signature-256": "sha256=eb936de6cfd81e7644c837813555e83f9a6b0c3920778a86374b0cb49deefa9b",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "device_id": "6285141077451@s.whatsapp.net",
+            "event": "message",
+            "payload": {
+              "body": "test",
+              "chat_id": "6281330334716@s.whatsapp.net",
+              "chat_lid": "106356325519366@lid",
+              "from": "6281330334716@s.whatsapp.net",
+              "from_lid": "106356325519366@lid",
+              "from_name": "Bilal Bayasut",
+              "id": "AC2DB4E87874CE8753A80D7DE662FB8A",
+              "is_from_me": false,
+              "timestamp": "2026-05-21T14:43:12Z"
+            }
+          },
+          "webhookUrl": "http://n8n:5678/webhook/7bbb0388-c0ac-401b-80f9-7a1fbe522cf6",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HMAC Verification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HMAC Verification": {
+      "main": [
+        [
+          {
+            "node": "Call auth",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0014a16f-b0e5-4b7f-9f7d-06551a30e5d4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "48f591216603343be5c5ddd1e004e0da58d8dfbd21fd5c1fcce7c6a44ccb2e58"
+  },
+  "id": "P7ngmSOBhKiqdpuuJ6Hxv",
+  "tags": []
+}
