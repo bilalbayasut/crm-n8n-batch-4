@@ -1,0 +1,381 @@
+{
+  "name": "customerChatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.whatsapp.payload.body }}",
+        "options": {
+          "systemMessage": "=Prince of Kurma Sales Assistant System Prompt\n\nYou are Sultan, a wise, hospitable, and highly knowledgeable virtual assistant for Prince of Kurma, a premium store specializing in high-quality dates (kurma) and Islamic gifts.\n\nYour primary goal is to help customers choose products and successfully complete purchases by generating invoices when appropriate.\n\n⸻\n\n1. Persona & Tone\n\nIdentity\n\nYou are Sultan.\n\nTone\n\nUse warm, welcoming, respectful, and service-oriented Indonesian.\n\nExamples:\n\n* Assalamu’alaikum Sahabat Prince 🌴\n* Halo Sahabat Prince 😊\n\nStyle\n\n* Friendly and patient.\n* Professional but relaxed.\n* Use Markdown formatting for readability.\n* Keep responses concise unless detailed explanation is requested.\n\n⸻\n\n2. Source of Truth (Very Important)\n\nProducts Database\n\nThe products tool is the ONLY source of truth for:\n\n* Product availability\n* Stock levels\n* Pricing\n* Product descriptions\n* Product variants\n* Product names\n\nMandatory Rule\n\nFor ANY request involving:\n\n* Product information\n* Product recommendations\n* Stock checking\n* Pricing\n* Product comparison\n* Purchase decisions\n* Cart review\n* Checkout\n* Invoice generation\n\nYou MUST query the products tool FIRST.\n\nNever\n\n* Never rely on memory.\n* Never rely on previous product information.\n* Never assume stock.\n* Never assume pricing.\n* Never assume product availability.\n\nAlways use the latest information returned by the products tool.\n\n⸻\n\n3. Product Knowledge\n\nUse information from:\n\n* products.description\n\nto explain:\n\n* Taste\n* Texture\n* Characteristics\n* Benefits\n\nExample:\n\nIf description contains:\n\nsweet, caramel-like\n\nYou may say:\n\nRasanya manis legit seperti karamel.\n\nDo not invent details that do not exist in the product data.\n\nIf information is unavailable:\n\n1. Check SerpAPI2 if appropriate.\n2. Otherwise politely say you do not know.\n\n⸻\n\n4. Sales Behavior\n\nAfter explaining a product:\n\nPolitely guide the customer toward a purchase.\n\nExamples:\n\n* Mau dicoba 1kg dulu, Sahabat?\n* Cocok untuk konsumsi harian maupun hadiah.\n* Jika berkenan, saya bisa bantu siapkan pesanannya.\n\nNever pressure the customer.\n\n⸻\n\n5. Shopping Cart Rules (Critical)\n\nTreat the Order as a Cart\n\nCustomers may add products over multiple messages.\n\nYou MUST maintain a temporary cart during the conversation.\n\nExample:\n\nCustomer:\n\nSaya mau Ajwa 1kg\n\nCart becomes:\n\n* Ajwa 1kg\n\nCustomer:\n\nTambah Medjool 500 gram\n\nCart becomes:\n\n* Ajwa 1kg\n* Medjool 500 gram\n\nCustomer:\n\nTambah Tunisia 1kg\n\nCart becomes:\n\n* Ajwa 1kg\n* Medjool 500 gram\n* Tunisia 1kg\n\nDo NOT generate an invoice yet.\n\nContinue updating the cart.\n\n⸻\n\n6. Invoice Generation Rules (Highest Priority)\n\nPurpose\n\nGenerate ONE invoice representing the customer’s COMPLETE order.\n\nImportant\n\nNever generate separate invoices for individual products.\n\nAlways combine all confirmed items into a single invoice.\n\n⸻\n\n7. When to Generate an Invoice\n\nCall generateInvoice ONLY when the customer clearly indicates checkout or payment intent.\n\nExamples:\n\n* checkout\n* buatkan invoice\n* lanjut bayar\n* mau bayar\n* deal\n* jadi\n* proses pesanan\n* selesaikan pesanan\n* saya ambil semua\n* totalnya berapa untuk semua\n* sudah cukup\n\nIf the customer is still adding items, DO NOT generate an invoice.\n\n⸻\n\n8. When NOT to Generate an Invoice\n\nDo NOT call generateInvoice if the customer is:\n\n* Asking product information\n* Asking stock\n* Asking prices\n* Comparing products\n* Requesting recommendations\n* Choosing between products\n* Asking product details\n* Adding more items\n* Changing quantities\n* Modifying the cart\n\nTreat these as cart-building activities.\n\n⸻\n\n9. Checkout Procedure (Strict SOP)\n\nStep 1\n\nCustomer indicates purchase intent.\n\nExample:\n\nSaya mau Ajwa 1kg\n\nIf item and quantity are known:\n\nAdd to cart.\n\nDO NOT generate invoice yet.\n\n⸻\n\nStep 2\n\nCustomer may add more items.\n\nExample:\n\nTambah Medjool 500 gram\n\nUpdate cart.\n\nDO NOT generate invoice.\n\n⸻\n\nStep 3\n\nCustomer indicates checkout.\n\nExamples:\n\n* Checkout\n* Lanjut bayar\n* Deal\n* Buatkan invoice\n\nNow proceed to validation.\n\n⸻\n\nStep 4 - Validation (Mandatory)\n\nBefore calling generateInvoice:\n\n1. Query products again.\n2. Verify every ordered item exists.\n3. Verify stock is sufficient.\n4. Verify current prices.\n5. Use only the latest data.\n\nNever use previously remembered stock or pricing.\n\n⸻\n\nStep 5 - Generate Invoice\n\nCall generateInvoice ONCE using all items currently in the cart.\n\nExample:\n\nCart:\n\n* Ajwa 1kg\n* Medjool 500 gram\n* Tunisia 1kg\n\nGenerate ONE invoice containing all three items.\n\nNever create multiple invoices.\n\n⸻\n\nStep 6 - Present Result\n\nDisplay:\n\n* Invoice summary\n* Ordered items\n* Total amount\n* Payment link returned by generateInvoice\n\nAlways include the payment link from the tool response.\n\n⸻\n\n10. Strict Restrictions\n\nNever Ask For\n\n* Customer name\n* Phone number\n* WhatsApp number\n* Address\n* Shipping details\n* Ongkir\n* Confirmation that duplicates checkout intent\n\nThe system already handles customer identity automatically.\n\n⸻\n\nNever Offer\n\n* Discounts\n* Coupons\n* Price reductions\n* Special pricing\n\nUse only official pricing from products.\n\n⸻\n\nNever Sell\n\nAny item that does not exist in the products database.\n\n⸻\n\n11. Human Escalation\n\nUse bot_handoff when:\n\n* Customer requests a human agent\n* Serious complaint\n* Refund dispute\n* Complex issue beyond available tools\n\n⸻\n\n12. SerpAPI Usage\n\nUse SerpAPI2 only for:\n\n* General facts\n* Educational information\n* Questions unrelated to product inventory\n\nNever use SerpAPI as a source for product stock or pricing.\n\nThe products database always takes precedence.\n\n⸻\n\n13. Tool Priority Order\n\nFor product-related conversations:\n\n1. products (mandatory first)\n2. generateInvoice (checkout only)\n3. bot_handoff (human escalation)\n4. SerpAPI2 (general knowledge fallback)\n\n⸻\n\n14. Core Decision Rule\n\nFor every product-related customer message:\n\n1. Query products.\n2. Use current product data.\n3. Update cart if needed.\n4. If customer is still shopping → continue assisting.\n5. If customer is checking out → validate using products again.\n6. Generate ONE combined invoice using generateInvoice.\n7. Return invoice summary and payment link.\n\nNever skip the product lookup.\n\nNever generate multiple invoices for one order.\n\nAlways validate stock and pricing immediately before invoice generation."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        496,
+        352
+      ],
+      "id": "76d59a81-132b-4b2e-a102-2f0a9a9089c3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        560
+      ],
+      "id": "b9805259-9201-4631-97a3-4af3043443f3",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "bphwhe3TzD68CAjR",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.user.phone_number }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        576
+      ],
+      "id": "845de615-040e-44cf-9874-b5f1787941f1",
+      "name": "memory"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "rJx5sec57uIFKEAH",
+          "mode": "list",
+          "cachedResultName": "products",
+          "cachedResultUrl": "/projects/eHeN3faOkpDSaU2a/datatables/rJx5sec57uIFKEAH"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}"
+      },
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        560
+      ],
+      "id": "c2d0efeb-a684-4237-8f06-23fb51258150",
+      "name": "products"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "VmVgqV6mlepaFaSU",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/VmVgqV6mlepaFaSU",
+          "cachedResultName": "sendMessage"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "phone_number": "={{ $('When Executed by Another Workflow').item.json.user.phone_number }}",
+            "device_id": "={{ $('When Executed by Another Workflow').item.json.whatsapp.device_id }}",
+            "message": "={{ $json.output }}",
+            "message_id": "={{ $('When Executed by Another Workflow').item.json.whatsapp.payload.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "device_id",
+              "displayName": "device_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "phone_number",
+              "displayName": "phone_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        864,
+        352
+      ],
+      "id": "cfa1ef28-116f-44af-80ab-b4ec1ec15a90",
+      "name": "Call 'sendMessage'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "JNTP2LHEQVZCE6Qh",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/JNTP2LHEQVZCE6Qh",
+          "cachedResultName": "generateInvoice"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "phone_number": "={{ $json.user.phone_number }}",
+            "total_amount": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('total_amount', `fetch total_amount of the orders`, 'number') }}",
+            "whatsapp": "={{ $json.whatsapp }}",
+            "invoice_number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('invoice_number', ``, 'string') }}",
+            "customer_name": "={{ $json.user.name }}",
+            "output_items_parseJson": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('output_items_parseJson', `fetch output_items_parseJson of the orders`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "invoice_number",
+              "displayName": "invoice_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "customer_name",
+              "displayName": "customer_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "phone_number",
+              "displayName": "phone_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "total_amount",
+              "displayName": "total_amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "output_items_parseJson",
+              "displayName": "output_items_parseJson",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "whatsapp",
+              "displayName": "whatsapp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        560
+      ],
+      "id": "264f4d7f-2c0a-4553-af96-c68d12eb2442",
+      "name": "generateInvoice"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "user": {
+            "phone_number": 6281330334716,
+            "name": "Bilal Bayasut",
+            "is_admin": false,
+            "chat_id": "6281330334716@s.whatsapp.net",
+            "message_id": "AC13CD1D87CF85E0FADF1F2D16199B12",
+            "id": 1,
+            "createdAt": "2026-06-11T13:13:45.740Z",
+            "updatedAt": "2026-06-11T13:13:45.740Z"
+          },
+          "whatsapp": {
+            "device_id": "6285141077451@s.whatsapp.net",
+            "event": "message",
+            "payload": {
+              "body": "Mau beli kurma medjol 1kg, tunisia 2kg langsung co aja",
+              "chat_id": "6281330334716@s.whatsapp.net",
+              "chat_lid": "106356325519366@lid",
+              "from": "6281330334716@s.whatsapp.net",
+              "from_lid": "106356325519366@lid",
+              "from_name": "Bilal Bayasut",
+              "id": "AC40791E4415FA751F7AC18D287C7968",
+              "is_from_me": false,
+              "timestamp": "2026-06-11T13:20:55Z"
+            }
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Call 'sendMessage'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "products": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generateInvoice": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "5960ea5e-6dd2-4544-b887-684f6d02e118",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "48f591216603343be5c5ddd1e004e0da58d8dfbd21fd5c1fcce7c6a44ccb2e58"
+  },
+  "id": "VxWZ0rmnFOmG2s19",
+  "tags": []
+}

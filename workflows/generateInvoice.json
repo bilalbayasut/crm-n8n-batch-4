@@ -1,0 +1,549 @@
+{
+  "name": "generateInvoice",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "invoice_number"
+            },
+            {
+              "name": "customer_name"
+            },
+            {
+              "name": "phone_number",
+              "type": "number"
+            },
+            {
+              "name": "total_amount",
+              "type": "number"
+            },
+            {
+              "name": "output_items_parseJson",
+              "type": "any"
+            },
+            {
+              "name": "whatsapp",
+              "type": "any"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\n// Parse items safely\nlet rawItems = [];\ntry {\n  rawItems = JSON.parse(data.output_items_parseJson || \"[]\");\n} catch (e) {\n  rawItems = [];\n}\n\n// Normalize items to consistent keys: name/price/quantity\nconst items = rawItems\n  .map((it) => {\n    const name = (it.product ?? it.product_name ?? it.name ?? it.item_name ?? \"\")\n      .toString()\n      .trim();\n\n    const quantity = Number(it.quantity ?? 0);\n    const price = Number(it.price ?? 0);\n\n    return { name, quantity, price };\n  })\n  // Drop bad rows (empty name or zero quantity)\n  .filter((it) => it.name && it.quantity > 0);\n\nlet subtotal = 0;\n\nconst rowsHtml = items\n  .map((it, i) => {\n    const line = it.price * it.quantity;\n    subtotal += line;\n\n    return `\n      <tr>\n        <td>${i + 1}</td>\n        <td>${it.name}</td>\n        <td style=\"text-align:right;\">Rp ${it.price.toLocaleString(\"id-ID\")}</td>\n        <td style=\"text-align:right;\">${it.quantity}</td>\n        <td style=\"text-align:right;\">Rp ${line.toLocaleString(\"id-ID\")}</td>\n      </tr>\n    `;\n  })\n  .join(\"\");\n\n// Ensure total is numeric (fallback to subtotal if missing)\nconst totalAmount = Number(data.total_amount ?? 0) || subtotal;\n\n// ✅ One-line items string with subtotal & total\nconst items_string =\n  items\n    .map((it) => `${it.name} x${it.quantity} @ Rp ${it.price.toLocaleString(\"id-ID\")}`)\n    .join(\", \") +\n  ` | Subtotal: Rp ${subtotal.toLocaleString(\"id-ID\")}` +\n  ` | Total: Rp ${totalAmount.toLocaleString(\"id-ID\")}`;\n\n// Expired at +1 day (ISO)\nconst expiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();\n\n// OPTIONAL but useful for Mayar \"Items\" field if it needs structured items\nconst mayar_items = items.map((it) => ({\n  name: it.name,\n  quantity: it.quantity,\n  price: it.price,\n}));\n\nreturn [\n  {\n    json: {\n      invoice_number: data.invoice_number || `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, \"\")}`,\n      customer_name: (data.customer_name ?? \"\").toString(),\n      phone_number: (data.phone_number ?? \"\").toString(),\n      rowsHtml,\n      subtotal,\n      total_amount: totalAmount,\n      invoice_date: new Date().toLocaleDateString(\"id-ID\"),\n      items_string,\n      expired_at: expiredAt,\n      mayar_items, // <-- map this into Mayar node \"Items\" if required\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        320
+      ],
+      "id": "5fb3abc9-a636-48bd-8335-92a4358bb3ef",
+      "name": "prepare data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "82dae6c5-aaa2-42ef-b835-16529146c193",
+              "leftValue": "={{ $('get existing invoice').item.json.isNotEmpty() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1152,
+        320
+      ],
+      "id": "80c47462-e967-4f0a-9a58-a86fd8face65",
+      "name": "if invoice already made?"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "gtgDW3xiYmZGJKUK",
+          "mode": "list",
+          "cachedResultName": "invoices",
+          "cachedResultUrl": "/projects/eHeN3faOkpDSaU2a/datatables/gtgDW3xiYmZGJKUK"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "invoice_number",
+              "keyValue": "={{ $json.invoice_number }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        928,
+        320
+      ],
+      "id": "f311b5bc-d9c4-4905-8d28-95f05e72656d",
+      "name": "get existing invoice",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "debug": true
+        },
+        "name": "={{ $('prepare data').item.json.customer_name }}",
+        "email": "john@doe.com",
+        "mobile": "=+{{ $('prepare data').item.json.phone_number }}",
+        "redirectUrl": "https://web.mayar.club",
+        "description": "=Invoice {{ $('prepare data').item.json.invoice_number }}",
+        "expiredAt": "={{ $('prepare data').item.json.expired_at }}",
+        "items": {
+          "item": [
+            {
+              "rate": "={{ $('prepare data').item.json.total_amount }}",
+              "description": "={{ $('prepare data').item.json.items_string }}"
+            }
+          ]
+        }
+      },
+      "type": "@mayarid/n8n-nodes-mayar.mayar",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        416
+      ],
+      "id": "b4656106-081b-484a-adcb-d07babfbf6f5",
+      "name": "Create Invoice",
+      "credentials": {
+        "mayarApi": {
+          "id": "CKuP8CMyVc3xBZy9",
+          "name": "Mayar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "gtgDW3xiYmZGJKUK",
+          "mode": "list",
+          "cachedResultName": "invoices",
+          "cachedResultUrl": "/projects/eHeN3faOkpDSaU2a/datatables/gtgDW3xiYmZGJKUK"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "phone_number": "={{ $('prepare data').item.json.phone_number }}",
+            "name": "={{ $('prepare data').item.json.customer_name }}",
+            "content": "={{ $('Start').item.json.output_items_parseJson }}",
+            "total_amount": "={{ $('prepare data').item.json.total_amount }}",
+            "status": "PENDING",
+            "payment_link": "={{ $json.data.link }}",
+            "invoice_number": "={{ $('prepare data').item.json.invoice_number }}",
+            "transaction_id": "={{ $json.data.transactionId }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "phone_number",
+              "displayName": "phone_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_amount",
+              "displayName": "total_amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "payment_link",
+              "displayName": "payment_link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "invoice_number",
+              "displayName": "invoice_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "transaction_id",
+              "displayName": "transaction_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1600,
+        416
+      ],
+      "id": "716dc7d1-ea40-43a1-b3ba-a183dec70f1a",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "operation": "htmlToPdf",
+        "html": "={{ $json.html }}",
+        "outputFilenamePdf": "={{ $('prepare data').item.json.invoice_number }}.pdf"
+      },
+      "type": "@custom-js/n8n-nodes-pdf-toolkit-v2.pdfToolkit",
+      "typeVersion": 1,
+      "position": [
+        2048,
+        416
+      ],
+      "id": "a127bcfc-d7ab-44e8-be81-da548ea78099",
+      "name": "Convert HTML to PDF",
+      "credentials": {
+        "customJsApi": {
+          "id": "OAD6LfGyjg8qVizx",
+          "name": "CustomJS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html": "<!doctype html>\n<style>\n.btn-pay {\n  display: inline-block;\n  margin-top: 24px;\n  padding: 12px 24px;\n  background: #16a34a;\n  color: #ffffff;\n  text-decoration: none;\n  border-radius: 6px;\n  font-weight: bold;\n  font-size: 14px;\n}\n.btn-pay:hover {\n  background: #15803d;\n}\n.btn-wrapper {\n  text-align: left;\n}\n</style>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <style>\n    body { font-family: Arial, sans-serif; font-size: 12px; }\n    .container { width: 720px; margin: auto; }\n    h1 { margin-bottom: 4px; }\n    table { width: 100%; border-collapse: collapse; margin-top: 16px; }\n    th, td { border-bottom: 1px solid #ddd; padding: 8px; }\n    th { background: #f5f5f5; }\n    .right { text-align: right; }\n    .total { font-weight: bold; font-size: 14px; }\n  </style>\n</head>\n\n<body>\n  <div class=\"container\">\n    <h1>Invoice</h1>\n\n    <p>\n      <strong>Invoice #:</strong> {{ $('prepare data').item.json.invoice_number }}<br>\n      <strong>Date:</strong> {{ $('Create Invoice').item.json.data.expiredAt.toDateTime('ms').minus(1, 'days').toLocaleString() }}\n    </p>\n\n    <table>\n      <thead>\n        <tr>\n          <th>#</th>\n          <th>Item</th>\n          <th class=\"right\">Price</th>\n          <th class=\"right\">Qty</th>\n          <th class=\"right\">Total</th>\n        </tr>\n      </thead>\n      <tbody>\n        {{ $('prepare data').item.json.rowsHtml }}\n      </tbody>\n      <tfoot>\n        <tr>\n          <td colspan=\"4\" class=\"right\">Subtotal</td>\n          <td class=\"right\">Rp {{ $('prepare data').item.json.subtotal.format('id-ID') }}</td>\n        </tr>\n        <tr>\n          <td colspan=\"4\" class=\"right total\">Total</td>\n          <td class=\"right total\">Rp {{ $('prepare data').item.json.total_amount.format('id-ID') }}</td>\n        </tr>\n      </tfoot>\n    </table>\n    <div class=\"btn-wrapper\">\n  <a\n    class=\"btn-pay\"\n    href=\"{{ $('Create Invoice').item.json.data.link }}\"\n    target=\"_blank\"\n  >\n    💳 Bayar\n  </a>\n</div>\n  </div>\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        1824,
+        416
+      ],
+      "id": "62320f01-5ab4-484e-aab5-d830354ae584",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  link: $('Create Invoice').first().json.data.link\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2688,
+        416
+      ],
+      "id": "7299ab5b-0826-4f9e-8abe-5af0e1a5ae86",
+      "name": "return"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  \"chat_id\": $('get existing invoice').first().json.phone_number+'@s.whatsapp.net',\n  \"invoice\": $(\"get existing invoice\").first()\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        208
+      ],
+      "id": "2dc34e3b-6598-4cf4-8083-3e15adaed83d",
+      "name": "return existing invoice"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "W7IrqVREowHSfau0",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/W7IrqVREowHSfau0",
+          "cachedResultName": "sendFile"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "phone_number": "={{ $('prepare data').item.json.phone_number.toNumber() }}",
+            "binary": "={{ $binary }}",
+            "device_id": "={{ $('Start').item.json.whatsapp.device_id }}",
+            "message_id": "={{ $('Start').item.json.whatsapp.payload.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "device_id",
+              "displayName": "device_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "phone_number",
+              "displayName": "phone_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "binary",
+              "displayName": "binary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2368,
+        416
+      ],
+      "id": "ad752dae-e8c7-40da-88c3-cde7ed184321",
+      "name": "Call 'sendFile'"
+    }
+  ],
+  "pinData": {
+    "Start": [
+      {
+        "json": {
+          "invoice_number": "INV-KurmaTunisia2kg",
+          "customer_name": "Bilal Bayasut",
+          "phone_number": 6281330334716,
+          "total_amount": 170000,
+          "output_items_parseJson": [
+            {
+              "product_name": "Kurma Tunisia Tangkai (Deglet Noor)",
+              "quantity": 2,
+              "price": 85000
+            }
+          ],
+          "whatsapp": "null"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "prepare data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare data": {
+      "main": [
+        [
+          {
+            "node": "get existing invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if invoice already made?": {
+      "main": [
+        [
+          {
+            "node": "return existing invoice",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get existing invoice": {
+      "main": [
+        [
+          {
+            "node": "if invoice already made?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Invoice": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert HTML to PDF": {
+      "main": [
+        [
+          {
+            "node": "Call 'sendFile'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Convert HTML to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'sendFile'": {
+      "main": [
+        [
+          {
+            "node": "return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "8dede399-8c7d-4ca1-b745-cc81a129ebff",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "48f591216603343be5c5ddd1e004e0da58d8dfbd21fd5c1fcce7c6a44ccb2e58"
+  },
+  "id": "JNTP2LHEQVZCE6Qh",
+  "tags": []
+}

@@ -1,0 +1,353 @@
+{
+  "name": "paymentWebhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "412536c5-9e73-4aab-886f-2c4d371b6b7a",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2601c831-7a43-46e7-a21d-8b61abf74c00",
+      "name": "Webhook",
+      "webhookId": "412536c5-9e73-4aab-886f-2c4d371b6b7a"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "gtgDW3xiYmZGJKUK",
+          "mode": "list",
+          "cachedResultName": "invoices",
+          "cachedResultUrl": "/projects/eHeN3faOkpDSaU2a/datatables/gtgDW3xiYmZGJKUK"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "transaction_id",
+              "keyValue": "={{ $('Webhook').item.json.body.data.transactionId }}"
+            },
+            {
+              "keyName": "phone_number",
+              "keyValue": "={{ $('Webhook').item.json.body.data.customerMobile.split(\"+\")[1] }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "={{ $('Webhook').item.json.body.data.status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "phone_number",
+              "displayName": "phone_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "total_amount",
+              "displayName": "total_amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "payment_link",
+              "displayName": "payment_link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "invoice_number",
+              "displayName": "invoice_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "transaction_id",
+              "displayName": "transaction_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        528,
+        0
+      ],
+      "id": "5f09605f-311e-4b08-b113-6b13afd3e4b4",
+      "name": "update invoice to success"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "VmVgqV6mlepaFaSU",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/VmVgqV6mlepaFaSU",
+          "cachedResultName": "sendMessage"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "phone_number": "={{ $('get user').item.json.phone_number }}",
+            "device_id": "={{ $('get user').item.json.chat_id }}",
+            "message_id": "={{ $('get user').item.json.message_id }}",
+            "message": "Pembayaran diterima, terima kasih"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "device_id",
+              "displayName": "device_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "phone_number",
+              "displayName": "phone_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "message_id",
+              "displayName": "message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        0
+      ],
+      "id": "e3958b2c-1ad3-4c8c-9372-00d3e881dfaa",
+      "name": "Call 'sendMessage'"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "x86Ll9ocITAxLL5Q",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "/projects/eHeN3faOkpDSaU2a/datatables/x86Ll9ocITAxLL5Q"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone_number",
+              "keyValue": "={{ $json.body.data.customerMobile.split('+')[0] || $json.body.data.customerMobile }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        0
+      ],
+      "id": "439de471-6a93-48aa-b790-31db97833edf",
+      "name": "get user"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "c908-158-140-163-95.ngrok-free.app",
+            "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
+            "content-length": "910",
+            "accept": "*/*",
+            "accept-encoding": "gzip,deflate",
+            "content-type": "application/json",
+            "x-callback-token": "45c5b3c92ed1b6da798fdc59653301ddcd8b792e6e92476be65d88c961a7e08f262f5c87491754ad89e59f092d2994bc2311483fae24ca770fbaf697f90ea661",
+            "x-forwarded-for": "103.150.88.37",
+            "x-forwarded-host": "c908-158-140-163-95.ngrok-free.app",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "event": "payment.reminder",
+            "data": {
+              "id": "61eeea07-0c3b-46c7-b9b8-e5ed750464c6",
+              "transactionId": "61eeea07-0c3b-46c7-b9b8-e5ed750464c6",
+              "status": "SUCCESS",
+              "transactionStatus": "created",
+              "createdAt": "2026-06-09T14:43:47.238Z",
+              "updatedAt": "2026-06-09T14:43:47.238Z",
+              "merchantId": "900be7b8-caaf-4782-ba83-83a0626e13db",
+              "merchantEmail": "rubythalibengineer@gmail.com",
+              "customerId": "12d3e594-d018-488f-b87a-afad1ee0050f",
+              "customerName": "andi",
+              "customerEmail": "john@doe.com",
+              "customerMobile": "+6281330334716",
+              "amount": 250000,
+              "paymentLinkAmount": 250000,
+              "isAdminFeeBorneByCustomer": null,
+              "isChannelFeeBorneByCustomer": null,
+              "productId": "5848088c-88a3-461e-bfbe-fc97918914c9",
+              "productName": "INVOICE",
+              "productType": "invoice",
+              "pixelFbp": null,
+              "pixelFbc": null,
+              "qty": 1,
+              "couponUsed": null,
+              "paymentMethod": null,
+              "paymentUrl": "https://engineer-ruby-thalib.mayar.shop/select-channel/61eeea07-0c3b-46c7-b9b8-e5ed750464c6?webhook=true"
+            }
+          },
+          "webhookUrl": "http://n8n:5678/webhook/412536c5-9e73-4aab-886f-2c4d371b6b7a",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "get user",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update invoice to success": {
+      "main": [
+        [
+          {
+            "node": "Call 'sendMessage'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get user": {
+      "main": [
+        [
+          {
+            "node": "update invoice to success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d0b829f4-2872-4aca-ad83-38c7e917fe09",
+  "meta": {
+    "instanceId": "48f591216603343be5c5ddd1e004e0da58d8dfbd21fd5c1fcce7c6a44ccb2e58"
+  },
+  "id": "szosQAuuXXaylNt-tm78g",
+  "tags": []
+}

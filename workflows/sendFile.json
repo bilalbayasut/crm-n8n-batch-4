@@ -1,0 +1,320 @@
+{
+  "name": "sendFile",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "message",
+        "deviceIdOverride": "=bilal",
+        "operation": "readMessage",
+        "phoneOrGroupId": "={{ $('Start').item.json.phone_number }}@s.whatsapp.net",
+        "messageId": "={{ $('Start').item.json.message_id }}"
+      },
+      "type": "@aldinokemal2104/n8n-nodes-gowa.gowa",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -64
+      ],
+      "id": "a3cad17c-0efe-4f21-b394-241957d78356",
+      "name": "Mark message as read",
+      "credentials": {
+        "goWhatsappApi": {
+          "id": "jYMgy0YtwCOg0vuG",
+          "name": "GOWA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": "={{ Math.floor(Math.random() * (5 - 1 + 1) + 1) }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        -64
+      ],
+      "id": "c4d87c52-8212-47d9-a5da-81b8d71b719a",
+      "name": "Wait",
+      "webhookId": "854fbd27-2bcb-4990-b334-1d17b3c0f14f"
+    },
+    {
+      "parameters": {
+        "amount": "={{ Math.floor(Math.random() * (5 - 1 + 1) + 1) }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        -64
+      ],
+      "id": "162b4ff7-0ea4-4838-aea7-a73bba4df652",
+      "name": "Wait1",
+      "webhookId": "f3381aa4-d7f9-4795-a44b-9eafce48090b"
+    },
+    {
+      "parameters": {
+        "amount": "={{ Math.floor(Math.random() * (10 - 1 + 1) + 1) }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1072,
+        -64
+      ],
+      "id": "75d78d24-4360-41b1-a58b-b7246f122a60",
+      "name": "Wait2",
+      "webhookId": "2111f4e0-fb49-4227-9273-9023db8bcbfb"
+    },
+    {
+      "parameters": {
+        "amount": "={{ Math.floor(Math.random() * (3 - 1 + 1) + 1) }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1520,
+        -64
+      ],
+      "id": "2c8a16b6-a49a-4ab6-a42e-1b49d0ab310c",
+      "name": "Wait3",
+      "webhookId": "82170a28-30df-427a-be71-5ac84aaeb325"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "device_id"
+            },
+            {
+              "name": "phone_number",
+              "type": "number"
+            },
+            {
+              "name": "message_id"
+            },
+            {
+              "name": "binary",
+              "type": "any"
+            }
+          ]
+        }
+      },
+      "id": "1f2da1a3-bea7-42e1-8e8a-29ed9301c3f3",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -32,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "deviceIdOverride": "bilal",
+        "operation": "sendChatPresence",
+        "phoneNumber": "={{ $('Start').item.json.phone_number }}@s.whatsapp.net"
+      },
+      "type": "@aldinokemal2104/n8n-nodes-gowa.gowa",
+      "typeVersion": 1,
+      "position": [
+        848,
+        -64
+      ],
+      "id": "25cf51aa-d03a-4a51-84f0-d76174eac992",
+      "name": "start typing",
+      "credentials": {
+        "goWhatsappApi": {
+          "id": "jYMgy0YtwCOg0vuG",
+          "name": "GOWA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "deviceIdOverride": "bilal",
+        "operation": "sendChatPresence",
+        "phoneNumber": "={{ $('Start').item.json.phone_number }}@s.whatsapp.net",
+        "chatPresenceAction": "stop"
+      },
+      "type": "@aldinokemal2104/n8n-nodes-gowa.gowa",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        -64
+      ],
+      "id": "93a5f7f1-f836-4c99-8eea-b89a98b19044",
+      "name": "stop typing",
+      "credentials": {
+        "goWhatsappApi": {
+          "id": "jYMgy0YtwCOg0vuG",
+          "name": "GOWA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "deviceIdOverride": "bilal",
+        "operation": "sendMedia",
+        "phoneNumber": "={{ $('Start').item.json.phone_number }}@s.whatsapp.net",
+        "mediaType": "file",
+        "binaryProperty": "={{ $('Start').item.json.binary.data }}",
+        "caption": "={{ $('Start').item.json.binary.data.fileName }}"
+      },
+      "type": "@aldinokemal2104/n8n-nodes-gowa.gowa",
+      "typeVersion": 1,
+      "position": [
+        1744,
+        -64
+      ],
+      "id": "d2be07dc-1b0d-4e22-b437-1fa046fc96a6",
+      "name": "Send media files",
+      "credentials": {
+        "goWhatsappApi": {
+          "id": "jYMgy0YtwCOg0vuG",
+          "name": "GOWA account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Start": [
+      {
+        "json": {
+          "device_id": "6285141077451@s.whatsapp.net",
+          "phone_number": 6281330334716,
+          "message_id": "AC2F08AB843C45E611572B142928640A",
+          "binary": {
+            "data": {
+              "mimeType": "application/pdf",
+              "fileType": "pdf",
+              "fileExtension": "pdf",
+              "fileName": "INV-20260521-0002.pdf",
+              "id": "filesystem-v2:workflows/JNTP2LHEQVZCE6Qh/executions/436/binary_data/7b1cc2a6-1392-4841-bc27-59ed324fb8ad",
+              "fileSize": "22.4 kB",
+              "bytes": 22386
+            }
+          }
+        },
+        "binary": {
+          "data": {
+            "mimeType": "application/pdf",
+            "fileType": "pdf",
+            "fileExtension": "pdf",
+            "data": "filesystem-v2",
+            "fileName": "INV-20260521-0002.pdf",
+            "id": "filesystem-v2:workflows/JNTP2LHEQVZCE6Qh/executions/436/binary_data/7b1cc2a6-1392-4841-bc27-59ed324fb8ad",
+            "fileSize": "22.4 kB",
+            "bytes": 22386
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Mark message as read": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Mark message as read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "start typing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "stop typing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "Send media files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "start typing": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stop typing": {
+      "main": [
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "29fc5f34-2ca4-4b5d-bd19-ef4344ab07c5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "48f591216603343be5c5ddd1e004e0da58d8dfbd21fd5c1fcce7c6a44ccb2e58"
+  },
+  "id": "W7IrqVREowHSfau0",
+  "tags": []
+}
