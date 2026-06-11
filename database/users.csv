@@ -1,2 +1,2 @@
-﻿id,phone_number,name,is_admin,createdAt,updatedAt
-1,6281330334716,Bilal Bayasut,1,2026-01-06T14:12:38.844Z,2026-01-07T07:04:06.264Z
+﻿id,phone_number,name,is_admin,chat_id,message_id,createdAt,updatedAt
+1,6281330334716,Bilal Bayasut,1,6281330334716@s.whatsapp.net,AC13CD1D87CF85E0FADF1F2D16199B12,2026-06-11T13:13:45.740Z,2026-06-11T13:39:31.433Z
